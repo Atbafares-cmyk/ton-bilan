@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boussole Orientation — 23 MindSet</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  [data-theme="dark"] {
+    --bg: #101010; --surface: #1a1a1a; --surface2: #242424;
+    --accent: #E25667; --accent-light: #f07080;
+    --text: #f0f0f0; --text-muted: #aaa; --border: #333;
+    --success: #4caf93; --warn: #ffc107; --shadow: rgba(0,0,0,0.4);
+  }
+  [data-theme="light"] {
+    --bg: #f4f4f6; --surface: #ffffff; --surface2: #f0f0f3;
+    --accent: #E25667; --accent-light: #c93d50;
+    --text: #111111; --text-muted: #666; --border: #ddd;
+    --success: #2e9e7e; --warn: #b8860b; --shadow: rgba(0,0,0,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 17px; line-height: 1.7; transition: background .3s, color .3s; }
+  header { background: var(--surface); border-bottom: 2px solid var(--accent); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; box-shadow: 0 2px 8px var(--shadow); position: sticky; top: 0; z-index: 20; }
+  .header-left { display: flex; align-items: center; gap: 14px; }
+  .logo-mark { width: 44px; height: 44px; background: var(--accent); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .logo-text .brand { font-size: 18px; font-weight: 700; color: var(--text); }
+  .logo-text .tagline { font-size: 11px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; }
+  .theme-toggle { display: flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border); border-radius: 30px; padding: 6px 14px; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text-muted); transition: all .2s; white-space: nowrap; }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--text); }
+  .theme-icon { font-size: 16px; }
+  .progress-bar-wrap { background: var(--surface); padding: 12px 32px 0; border-bottom: 1px solid var(--border); }
+  .progress-steps { display: flex; gap: 8px; align-items: center; padding-bottom: 12px; }
+  .step-dot { flex: 1; height: 6px; border-radius: 4px; background: var(--border); transition: background .4s; }
+  .step-dot.active { background: var(--accent); }
+  .step-dot.done { background: var(--success); }
+  .prog-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .prog-info span { font-size: 13px; color: var(--text-muted); }
+  #progress-pct { color: var(--accent); font-weight: 600; }
+  .container { max-width: 760px; margin: 0 auto; padding: 32px 20px 60px; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .section-header { margin-bottom: 28px; }
+  .section-badge { display: inline-block; background: var(--accent); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; }
+  .section-title { font-size: 26px; font-weight: 700; margin-bottom: 8px; }
+  .section-desc { font-size: 15px; color: var(--text-muted); background: var(--surface2); border-left: 3px solid var(--accent); padding: 12px 16px; border-radius: 0 8px 8px 0; }
+  .question-block { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; margin-bottom: 20px; transition: border-color .2s, box-shadow .2s; }
+  .question-block:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(226,86,103,0.1); }
+  .question-num { font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+  .question-text { font-size: 17px; font-weight: 500; margin-bottom: 6px; }
+  .question-falc { font-size: 14px; color: var(--text-muted); font-style: italic; margin-bottom: 14px; }
+  input[type="text"], textarea { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 16px; padding: 12px 14px; outline: none; transition: border-color .2s; }
+  input[type="text"]:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: vertical; min-height: 90px; }
+  .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .options-grid.single { grid-template-columns: 1fr; }
+  .opt-label { display: flex; align-items: flex-start; gap: 12px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: border-color .2s, background .2s; font-size: 15px; user-select: none; }
+  .opt-label:hover { border-color: var(--accent); }
+  .opt-label.selected { border-color: var(--accent); background: rgba(226,86,103,0.1); }
+  .opt-check { width: 20px; height: 20px; flex-shrink: 0; border: 2px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px; transition: all .2s; pointer-events: none; }
+  .opt-label.selected .opt-check { background: var(--accent); border-color: var(--accent); }
+  .opt-check::after { content: ''; display: none; width: 8px; height: 8px; background: #fff; border-radius: 50%; }
+  .opt-label.selected .opt-check::after { display: block; }
+  .opt-check.square { border-radius: 4px; }
+  .opt-check.square::after { width: 10px; height: 6px; background: none; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translateY(-2px); border-radius: 0; }
+  .scale-wrap { display: flex; gap: 8px; align-items: center; }
+  .scale-btn { flex: 1; padding: 10px 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; cursor: pointer; transition: all .2s; text-align: center; }
+  .scale-btn:hover { border-color: var(--accent); }
+  .scale-btn.selected { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .scale-labels { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-top: 6px; }
+  .handicap-box { background: var(--surface2); border: 1px dashed var(--accent); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; }
+  .handicap-box .hb-title { font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 8px; }
+  .handicap-box p { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; }
+  .nav-btns { display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px; }
+  .btn { padding: 14px 28px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; border: none; transition: all .2s; }
+  .btn-prev { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-prev:hover { border-color: var(--accent); }
+  .btn-next { background: var(--accent); color: #fff; }
+  .btn-next:hover { background: var(--accent-light); }
+  .welcome-card { background: var(--surface); border-radius: 16px; padding: 40px 36px; text-align: center; border: 1px solid var(--border); }
+  .welcome-card h1 { font-size: 30px; font-weight: 700; margin-bottom: 12px; }
+  .welcome-card .sub { color: var(--text-muted); font-size: 16px; margin-bottom: 28px; }
+  .info-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 32px; }
+  .info-card { background: var(--surface2); border-radius: 10px; padding: 16px 12px; font-size: 14px; }
+  .info-card .ic-num { font-size: 24px; font-weight: 700; color: var(--accent); }
+  .info-card .ic-label { color: var(--text-muted); margin-top: 4px; }
+  .falc-note { background: rgba(226,86,103,0.08); border: 1px solid rgba(226,86,103,0.3); border-radius: 8px; padding: 14px 16px; font-size: 14px; color: var(--text-muted); margin-bottom: 24px; text-align: left; }
+  .falc-note strong { color: var(--accent); }
+  .disclaimer { font-size: 12px; color: var(--text-muted); margin-top: 18px; line-height: 1.5; }
+  #section-result { display: none; }
+  #section-result.active { display: block; }
+  .result-tabs { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
+  .rtab { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 15px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-muted); transition: all .2s; }
+  .rtab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .rtab-content { display: none; }
+  .rtab-content.active { display: block; }
+  .result-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .result-card h3 { font-size: 17px; font-weight: 600; color: var(--accent); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .tag-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { background: rgba(226,86,103,0.15); border: 1px solid rgba(226,86,103,0.4); color: var(--accent-light); padding: 5px 12px; border-radius: 20px; font-size: 14px; }
+  .tag.green { background: rgba(76,175,147,0.15); border-color: rgba(76,175,147,0.4); color: var(--success); }
+  .tag.grey { background: var(--surface2); border-color: var(--border); color: var(--text-muted); }
+  .score-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+  .score-label { width: 200px; font-size: 14px; flex-shrink: 0; }
+  .score-bar-bg { flex: 1; height: 10px; background: var(--surface2); border-radius: 6px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 6px; background: var(--accent); transition: width 1s ease; }
+  .score-val { font-size: 14px; font-weight: 600; color: var(--accent); width: 36px; text-align: right; }
+  .radar-wrap { max-width: 360px; margin: 0 auto; padding: 20px 0; }
+  .reco-item { display: flex; gap: 14px; align-items: flex-start; background: var(--surface2); border-radius: 8px; padding: 14px 16px; margin-bottom: 10px; }
+  .reco-icon { font-size: 22px; flex-shrink: 0; }
+  .reco-text { font-size: 15px; }
+  .reco-text strong { display: block; margin-bottom: 3px; }
+  .constraint-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.4); color: var(--warn); padding: 6px 12px; border-radius: 8px; font-size: 13px; margin: 4px; }
+  .profile-banner { background: linear-gradient(135deg, var(--accent) 0%, #b03048 100%); border-radius: 12px; padding: 28px 24px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+  .profile-icon { font-size: 40px; }
+  .profile-name { font-size: 22px; font-weight: 700; color: #fff; }
+  .profile-type { font-size: 15px; color: rgba(255,255,255,0.85); }
+  .pdf-btn { display: flex; align-items: center; gap: 10px; background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 14px 24px; font-family: 'DM Sans', sans-serif; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 24px; transition: background .2s; }
+  .pdf-btn:hover { background: var(--accent-light); }
+  .vs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .vs-col { background: var(--surface2); border-radius: 10px; padding: 16px; }
+  .vs-col.forces { border-top: 3px solid var(--success); }
+  .vs-col.axes { border-top: 3px solid var(--warn); }
+  .vs-col-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; text-transform: uppercase; letter-spacing: .5px; }
+  .vs-col.forces .vs-col-title { color: var(--success); }
+  .vs-col.axes .vs-col-title { color: var(--warn); }
+  .vs-item { font-size: 14px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .vs-item:last-child { border-bottom: none; }
+  .vs-item strong { display: block; font-size: 14px; margin-bottom: 2px; }
+  .vs-item span { color: var(--text-muted); font-size: 13px; line-height: 1.5; display: block; }
+  .vs-empty { font-size: 13px; color: var(--text-muted); font-style: italic; }
+  .reco-card { background: var(--surface2); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 8px; padding: 18px 20px; margin-bottom: 14px; }
+  .reco-card-title { font-size: 16px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .reco-line { display: flex; gap: 10px; margin-bottom: 8px; font-size: 14px; }
+  .reco-line:last-child { margin-bottom: 0; }
+  .reco-label { flex-shrink: 0; width: 92px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; padding-top: 2px; }
+  .reco-label.constat { color: var(--text-muted); }
+  .reco-label.pourquoi { color: var(--accent); }
+  .reco-label.action { color: var(--success); }
+  .reco-content { flex: 1; line-height: 1.55; }
+  .priority-pill { font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 3px 10px; border-radius: 12px; letter-spacing: .5px; }
+  .priority-pill.haute { background: rgba(226,86,103,0.2); color: var(--accent-light); border: 1px solid rgba(226,86,103,0.5); }
+  .priority-pill.moyenne { background: rgba(255,193,7,0.15); color: var(--warn); border: 1px solid rgba(255,193,7,0.4); }
+  .coherence-box { background: rgba(76,175,147,0.08); border: 1px solid rgba(76,175,147,0.3); border-radius: 8px; padding: 16px 18px; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+  .coherence-box strong { color: var(--success); }
+  .metier-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; }
+  .metier-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .metier-nom { font-size: 17px; font-weight: 700; }
+  .match-pill { font-size: 11px; font-weight: 700; background: rgba(76,175,147,0.15); color: var(--success); border: 1px solid rgba(76,175,147,0.4); padding: 4px 12px; border-radius: 14px; }
+  .metier-row { display: flex; gap: 10px; font-size: 14px; margin-bottom: 6px; }
+  .metier-row:last-child { margin-bottom: 0; }
+  .metier-label { flex-shrink: 0; width: 92px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); padding-top: 2px; }
+  .metier-content { flex: 1; line-height: 1.5; }
+  .metier-content .cert { color: var(--accent-light); font-weight: 600; }
+  footer { background: var(--surface); border-top: 1px solid var(--border); padding: 18px 32px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  footer strong { color: var(--accent); }
+  footer .footer-sep { margin: 0 8px; opacity: .4; }
+  @media(max-width: 540px) {
+    .options-grid { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr 1fr; }
+    .scale-btn { font-size: 13px; padding: 8px 0; }
+    .section-title { font-size: 21px; }
+    header { padding: 12px 16px; }
+    .theme-toggle span:not(.theme-icon) { display: none; }
+    .vs-grid { grid-template-columns: 1fr; }
+    .reco-line, .metier-row { flex-direction: column; gap: 2px; }
+    .reco-label, .metier-label { width: auto; }
+    .score-label { width: 140px; }
+  }
+  @media print {
+    header, .progress-bar-wrap, .nav-btns, .result-tabs, .pdf-btn, .theme-toggle { display: none !important; }
+    body { background: #fff !important; color: #111 !important; }
+    .result-card, .reco-card, .metier-card { page-break-inside: avoid; border: 1px solid #ddd; }
+    footer { color: #555 !important; border-top: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-mark">23</div>
+    <div class="logo-text">
+      <div class="brand">23 MindSet</div>
+      <div class="tagline">L'Humain avant tout</div>
+    </div>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+    <span class="theme-icon">🌙</span>
+    <span>Mode clair</span>
+  </button>
+</header>
+
+<div class="progress-bar-wrap">
+  <div class="prog-info">
+    <span id="step-label-txt">Accueil</span>
+    <span id="progress-pct">0%</span>
+  </div>
+  <div class="progress-steps" id="progress-steps"></div>
+</div>
+
+<div class="container">
+
+  <!-- ACCUEIL -->
+  <div class="section active" id="section-0">
+    <div class="welcome-card">
+      <div style="font-size:48px;margin-bottom:16px;">🧭</div>
+      <h1>Ta Boussole d'Orientation</h1>
+      <p class="sub">Ce test va t'aider à découvrir ce qui te correspond vraiment.<br>Pas besoin d'expérience professionnelle : on s'intéresse à toi.</p>
+      <div class="info-grid">
+        <div class="info-card"><div class="ic-num">44</div><div class="ic-label">Questions</div></div>
+        <div class="info-card"><div class="ic-num">~30</div><div class="ic-label">Minutes</div></div>
+        <div class="info-card"><div class="ic-num">4</div><div class="ic-label">Étapes</div></div>
+      </div>
+      <div class="falc-note">
+        <strong>Ce test est pour toi si :</strong><br>
+        ✔ Tu es au collège, au lycée ou en début d'études<br>
+        ✔ Tu te demandes quel métier ou quelles études choisir<br>
+        ✔ Tu veux mieux connaître tes points forts et ce qui t'attire<br><br>
+        <strong>Comment faire :</strong> Lis chaque question. Choisis la réponse qui te ressemble le plus. Réponds avec ce que tu ressens vraiment, pas avec ce qu'on attend de toi. Il n'y a pas de bonne ou de mauvaise réponse.
+      </div>
+      <button class="btn btn-next" style="width:100%;font-size:18px;padding:16px;" onclick="startTest()">Commencer →</button>
+      <p class="disclaimer">⚠️ Ce test est un outil pour réfléchir. Il ne remplace pas un rendez-vous avec un(e) psychologue de l'Éducation nationale (PsyEN) ou un(e) conseiller(ère) d'orientation.</p>
+    </div>
+  </div>
+
+  <!-- MODULE 1 : QUI ES-TU -->
+  <div class="section" id="section-1">
+    <div class="section-header">
+      <div class="section-badge">Étape 1 / 4</div>
+      <div class="section-title">Qui es-tu ?</div>
+      <div class="section-desc">Quelques questions pour faire connaissance. Réponds simplement, il n'y a rien de compliqué.</div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 1</div>
+      <div class="question-text">Quel est ton prénom ? <span style="color:var(--text-muted);font-weight:400">(facultatif)</span></div>
+      <div class="question-falc">Comment tu t'appelles ?</div>
+      <input type="text" id="q_prenom" placeholder="Ton prénom...">
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 2</div>
+      <div class="question-text">Quelle est ta situation actuelle ?</div>
+      <div class="question-falc">Où en es-tu dans tes études en ce moment ?</div>
+      <div class="options-grid single" id="q2">
+        <label class="opt-label"><span class="opt-check"></span> Au collège (3e)</label>
+        <label class="opt-label"><span class="opt-check"></span> Au lycée général ou technologique</label>
+        <label class="opt-label"><span class="opt-check"></span> Au lycée professionnel (CAP ou Bac pro)</label>
+        <label class="opt-label"><span class="opt-check"></span> Étudiant(e) dans le supérieur</label>
+        <label class="opt-label"><span class="opt-check"></span> Je ne suis plus à l'école en ce moment</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 3</div>
+      <div class="question-text">Quelles sont les matières que tu préfères (ou préférais) ?</div>
+      <div class="question-falc">Quels cours te plaisent le plus ? Tu peux cocher plusieurs réponses.</div>
+      <div class="options-grid" id="q3">
+        <label class="opt-label"><span class="opt-check square"></span> Maths</label>
+        <label class="opt-label"><span class="opt-check square"></span> Sciences (SVT, physique-chimie)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Français, littérature</label>
+        <label class="opt-label"><span class="opt-check square"></span> Histoire-géo</label>
+        <label class="opt-label"><span class="opt-check square"></span> Langues étrangères</label>
+        <label class="opt-label"><span class="opt-check square"></span> Arts (dessin, musique...)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Sport (EPS)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Technologie, informatique</label>
+        <label class="opt-label"><span class="opt-check square"></span> Économie, gestion</label>
+        <label class="opt-label"><span class="opt-check square"></span> Aucune ne me plaît vraiment</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 4</div>
+      <div class="question-text">Qu'est-ce que tu aimes faire en dehors des cours ?</div>
+      <div class="question-falc">Tes loisirs, tes passions, tes petites activités. Tu peux cocher plusieurs réponses.</div>
+      <div class="options-grid" id="q4">
+        <label class="opt-label"><span class="opt-check square"></span> Faire du sport</label>
+        <label class="opt-label"><span class="opt-check square"></span> Jouer aux jeux vidéo</label>
+        <label class="opt-label"><span class="opt-check square"></span> Créer (dessin, musique, vidéos, photo...)</label>
+        <label class="opt-label"><span class="opt-check square"></span> M'occuper d'enfants (baby-sitting...)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Bricoler, réparer, construire</label>
+        <label class="opt-label"><span class="opt-check square"></span> Aider (bénévolat, association, famille)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Petits jobs (été, week-end)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Créer du contenu (réseaux, montage...)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Lire, apprendre par moi-même</label>
+        <label class="opt-label"><span class="opt-check square"></span> Cuisiner</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 5</div>
+      <div class="question-text">As-tu déjà une idée de métier ?</div>
+      <div class="question-falc">Sais-tu déjà ce que tu veux faire plus tard ?</div>
+      <div class="options-grid single" id="q5">
+        <label class="opt-label"><span class="opt-check"></span> Oui, j'ai une idée précise</label>
+        <label class="opt-label"><span class="opt-check"></span> J'hésite entre plusieurs pistes</label>
+        <label class="opt-label"><span class="opt-check"></span> Non, aucune idée pour l'instant</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 6</div>
+      <div class="question-text">Si tu as une ou des idées de métier, écris-les ici <span style="color:var(--text-muted);font-weight:400">(facultatif)</span></div>
+      <div class="question-falc">Écris le ou les métiers auxquels tu penses. Même si tu n'es pas sûr(e).</div>
+      <input type="text" id="q6" placeholder="Ex : vétérinaire, développeuse de jeux vidéo, infirmier...">
+    </div>
+
+    <div class="handicap-box">
+      <div class="hb-title">🤝 Tes besoins spécifiques (facultatif)</div>
+      <p>Ces informations restent confidentielles. Elles servent à adapter les pistes de métiers à ta situation.</p>
+      <div class="question-text" style="font-size:15px;margin-bottom:10px;">As-tu des besoins particuliers liés à ta santé ou ta situation ?</div>
+      <div class="question-falc" style="font-size:13px;margin-bottom:12px;">Coche ce qui te correspond. Plusieurs réponses possibles.</div>
+      <div class="options-grid" id="q_handicap">
+        <label class="opt-label"><span class="opt-check square"></span> Handicap moteur (mobilité réduite)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Troubles dys (dyslexie, dyspraxie...)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Trouble de l'attention (TDAH)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Troubles auditifs ou visuels</label>
+        <label class="opt-label"><span class="opt-check square"></span> Maladie chronique / fatigue importante</label>
+        <label class="opt-label"><span class="opt-check square"></span> Forte anxiété (stress, prise de parole...)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Aucun besoin particulier</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 7</div>
+      <div class="question-text">Tu te vois plutôt faire des études...</div>
+      <div class="question-falc">Combien de temps veux-tu étudier après le lycée ?</div>
+      <div class="options-grid single" id="q7">
+        <label class="opt-label"><span class="opt-check"></span> Courtes : apprendre vite un métier (CAP, Bac pro, 1 à 3 ans)</label>
+        <label class="opt-label"><span class="opt-check"></span> Moyennes : Bac+2 ou Bac+3 (BTS, BUT, licence)</label>
+        <label class="opt-label"><span class="opt-check"></span> Longues : Bac+5 et plus (master, écoles...)</label>
+        <label class="opt-label"><span class="opt-check"></span> Je ne sais pas encore</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 8</div>
+      <div class="question-text">L'alternance, ça t'intéresse ?</div>
+      <div class="question-falc">L'alternance, c'est étudier ET travailler en entreprise en même temps. Et tu es payé(e) pour ça.</div>
+      <div class="options-grid" id="q8">
+        <label class="opt-label"><span class="opt-check"></span> Oui, ça m'intéresse beaucoup</label>
+        <label class="opt-label"><span class="opt-check"></span> Pourquoi pas</label>
+        <label class="opt-label"><span class="opt-check"></span> Non, je préfère les études classiques</label>
+        <label class="opt-label"><span class="opt-check"></span> Je ne connaissais pas</label>
+      </div>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn btn-next" onclick="goTo(2)">Étape suivante →</button>
+    </div>
+  </div>
+
+  <!-- MODULE 2 : PERSONNALITE -->
+  <div class="section" id="section-2">
+    <div class="section-header">
+      <div class="section-badge">Étape 2 / 4</div>
+      <div class="section-title">Comment tu fonctionnes</div>
+      <div class="section-desc">Ta façon d'être, avec les autres et face aux situations. Réponds avec honnêteté : c'est toi que ce test doit décrire, pas quelqu'un d'autre.</div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 9</div>
+      <div class="question-text">Tu es à l'aise pour parler avec des gens que tu ne connais pas ?</div>
+      <div class="question-falc">Avec des inconnus, est-ce que tu parles facilement ?</div>
+      <div class="scale-wrap" id="q9">
+        <button class="scale-btn" onclick="selectScale('q9',this,1)">1</button><button class="scale-btn" onclick="selectScale('q9',this,2)">2</button><button class="scale-btn" onclick="selectScale('q9',this,3)">3</button><button class="scale-btn" onclick="selectScale('q9',this,4)">4</button><button class="scale-btn" onclick="selectScale('q9',this,5)">5</button>
+      </div>
+      <div class="scale-labels"><span>Pas du tout à l'aise</span><span>Très à l'aise</span></div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 10</div>
+      <div class="question-text">Tu arrives à t'organiser tout(e) seul(e) (devoirs, projets, affaires) ?</div>
+      <div class="question-falc">Sans que personne te le rappelle, tu fais les choses à temps ?</div>
+      <div class="scale-wrap" id="q10">
+        <button class="scale-btn" onclick="selectScale('q10',this,1)">1</button><button class="scale-btn" onclick="selectScale('q10',this,2)">2</button><button class="scale-btn" onclick="selectScale('q10',this,3)">3</button><button class="scale-btn" onclick="selectScale('q10',this,4)">4</button><button class="scale-btn" onclick="selectScale('q10',this,5)">5</button>
+      </div>
+      <div class="scale-labels"><span>J'ai du mal</span><span>Très organisé(e)</span></div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 11</div>
+      <div class="question-text">Quel est ton niveau avec les outils numériques (au-delà des réseaux sociaux) ?</div>
+      <div class="question-falc">Ordinateur, logiciels, créer des documents, installer des choses... tu t'en sors ?</div>
+      <div class="scale-wrap" id="q11">
+        <button class="scale-btn" onclick="selectScale('q11',this,1)">1</button><button class="scale-btn" onclick="selectScale('q11',this,2)">2</button><button class="scale-btn" onclick="selectScale('q11',this,3)">3</button><button class="scale-btn" onclick="selectScale('q11',this,4)">4</button><button class="scale-btn" onclick="selectScale('q11',this,5)">5</button>
+      </div>
+      <div class="scale-labels"><span>Débutant(e)</span><span>Très à l'aise</span></div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 12</div>
+      <div class="question-text">En général, tu te sens motivé(e) et plein(e) d'énergie ?</div>
+      <div class="question-falc">Pour tes projets, tes journées... tu as la pêche ou tu es souvent fatigué(e) ?</div>
+      <div class="scale-wrap" id="q12">
+        <button class="scale-btn" onclick="selectScale('q12',this,1)">1</button><button class="scale-btn" onclick="selectScale('q12',this,2)">2</button><button class="scale-btn" onclick="selectScale('q12',this,3)">3</button><button class="scale-btn" onclick="selectScale('q12',this,4)">4</button><button class="scale-btn" onclick="selectScale('q12',this,5)">5</button>
+      </div>
+      <div class="scale-labels"><span>Souvent fatigué(e)</span><span>Très énergique</span></div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 13</div>
+      <div class="question-text">Tu aimes la nouveauté et les changements ?</div>
+      <div class="question-falc">Nouvelle école, nouvelles personnes, nouvelles activités... ça te stresse ou ça t'excite ?</div>
+      <div class="scale-wrap" id="q13">
+        <button class="scale-btn" onclick="selectScale('q13',this,1)">1</button><button class="scale-btn" onclick="selectScale('q13',this,2)">2</button><button class="scale-btn" onclick="selectScale('q13',this,3)">3</button><button class="scale-btn" onclick="selectScale('q13',this,4)">4</button><button class="scale-btn" onclick="selectScale('q13',this,5)">5</button>
+      </div>
+      <div class="scale-labels"><span>Ça me stresse</span><span>J'adore ça</span></div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 14</div>
+      <div class="question-text">Tu oses tenter des choses, même quand tu n'es pas sûr(e) de réussir ?</div>
+      <div class="question-falc">Lever la main, t'inscrire à un truc nouveau, parler en premier... tu oses ?</div>
+      <div class="scale-wrap" id="q14">
+        <button class="scale-btn" onclick="selectScale('q14',this,1)">1</button><button class="scale-btn" onclick="selectScale('q14',this,2)">2</button><button class="scale-btn" onclick="selectScale('q14',this,3)">3</button><button class="scale-btn" onclick="selectScale('q14',this,4)">4</button><button class="scale-btn" onclick="selectScale('q14',this,5)">5</button>
+      </div>
+      <div class="scale-labels"><span>Je préfère être sûr(e)</span><span>J'ose facilement</span></div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 15</div>
+      <div class="question-text">Tes amis te décrivent plutôt comme :</div>
+      <div class="question-falc">Comment les gens qui te connaissent bien te voient ?</div>
+      <div class="options-grid single" id="q15">
+        <label class="opt-label"><span class="opt-check"></span> Dynamique, drôle, qui motive les autres</label>
+        <label class="opt-label"><span class="opt-check"></span> Sérieux(se), fiable, sur qui on peut compter</label>
+        <label class="opt-label"><span class="opt-check"></span> Gentil(le), à l'écoute, qui aide</label>
+        <label class="opt-label"><span class="opt-check"></span> Original(e), créatif(ve), plein(e) d'idées</label>
+        <label class="opt-label"><span class="opt-check"></span> Calme, discret(e), réfléchi(e)</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 16</div>
+      <div class="question-text">Face à un problème difficile, ta réaction naturelle :</div>
+      <div class="question-falc">Quand il y a un gros problème, tu fais quoi en premier ?</div>
+      <div class="options-grid single" id="q16">
+        <label class="opt-label"><span class="opt-check"></span> Je fonce et je teste des solutions</label>
+        <label class="opt-label"><span class="opt-check"></span> Je réfléchis bien avant d'agir</label>
+        <label class="opt-label"><span class="opt-check"></span> J'en parle à quelqu'un de confiance</label>
+        <label class="opt-label"><span class="opt-check"></span> Je cherche sur internet comment d'autres ont fait</label>
+        <label class="opt-label"><span class="opt-check"></span> J'attends de voir si ça se règle tout seul</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 17</div>
+      <div class="question-text">Dans un travail de groupe, tu es plutôt celui ou celle qui :</div>
+      <div class="question-falc">Quand tu travailles en groupe, quel rôle tu prends naturellement ?</div>
+      <div class="options-grid single" id="q17">
+        <label class="opt-label"><span class="opt-check"></span> Organise et répartit le travail</label>
+        <label class="opt-label"><span class="opt-check"></span> Apporte les idées originales</label>
+        <label class="opt-label"><span class="opt-check"></span> Fait sa part sérieusement, sans faire de bruit</label>
+        <label class="opt-label"><span class="opt-check"></span> Met l'ambiance et soude le groupe</label>
+        <label class="opt-label"><span class="opt-check"></span> Vérifie que tout est juste et bien fait</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 18</div>
+      <div class="question-text">Quand on critique ton travail, comment tu réagis ?</div>
+      <div class="question-falc">Si un prof ou quelqu'un te dit que ce n'est pas bien, tu ressens quoi ?</div>
+      <div class="options-grid single" id="q18">
+        <label class="opt-label"><span class="opt-check"></span> Ça m'aide, je veux progresser</label>
+        <label class="opt-label"><span class="opt-check"></span> J'accepte si c'est justifié</label>
+        <label class="opt-label"><span class="opt-check"></span> Ça me touche, mais je rebondis</label>
+        <label class="opt-label"><span class="opt-check"></span> Ça me bloque et je perds confiance</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 19</div>
+      <div class="question-text">Comment tu apprends le mieux ?</div>
+      <div class="question-falc">Quelle est la meilleure façon pour toi de comprendre quelque chose de nouveau ?</div>
+      <div class="options-grid single" id="q19">
+        <label class="opt-label"><span class="opt-check"></span> En pratiquant directement, avec mes mains</label>
+        <label class="opt-label"><span class="opt-check"></span> En regardant quelqu'un faire, puis en imitant</label>
+        <label class="opt-label"><span class="opt-check"></span> En lisant ou en regardant des vidéos</label>
+        <label class="opt-label"><span class="opt-check"></span> En écoutant quelqu'un m'expliquer</label>
+        <label class="opt-label"><span class="opt-check"></span> En discutant et en échangeant avec d'autres</label>
+      </div>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn btn-prev" onclick="goTo(1)">← Retour</button>
+      <button class="btn btn-next" onclick="goTo(3)">Étape suivante →</button>
+    </div>
+  </div>
+
+  <!-- MODULE 3 : RIASEC -->
+  <div class="section" id="section-3">
+    <div class="section-header">
+      <div class="section-badge">Étape 3 / 4</div>
+      <div class="section-title">Ce qui t'attire vraiment</div>
+      <div class="section-desc">Pour chaque activité, dis si elle te plairait. Réponds avec ton envie, pas avec tes notes : on cherche ce qui t'attire, pas ce que tu sais déjà faire.</div>
+    </div>
+    <div id="riasec-questions"></div>
+    <div class="nav-btns">
+      <button class="btn btn-prev" onclick="goTo(2)">← Retour</button>
+      <button class="btn btn-next" onclick="goTo(4)">Étape suivante →</button>
+    </div>
+  </div>
+
+  <!-- MODULE 4 : ENVIES & CONDITIONS -->
+  <div class="section" id="section-4">
+    <div class="section-header">
+      <div class="section-badge">Étape 4 / 4</div>
+      <div class="section-title">Tes envies pour plus tard</div>
+      <div class="section-desc">Ce que tu veux pour ta vie future. Sois honnête avec toi-même : c'est TON avenir, pas celui de tes parents ou de tes amis.</div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 38</div>
+      <div class="question-text">Qu'est-ce qui compte le plus pour toi dans ton futur métier ?</div>
+      <div class="question-falc">Le métier parfait pour toi, il doit avoir quoi ? Coche jusqu'à 3 réponses.</div>
+      <div class="options-grid" id="q38">
+        <label class="opt-label"><span class="opt-check square"></span> Bien gagner ma vie</label>
+        <label class="opt-label"><span class="opt-check square"></span> Aider les autres</label>
+        <label class="opt-label"><span class="opt-check square"></span> Créer, inventer des choses</label>
+        <label class="opt-label"><span class="opt-check square"></span> Être libre, indépendant(e)</label>
+        <label class="opt-label"><span class="opt-check square"></span> Voyager, bouger</label>
+        <label class="opt-label"><span class="opt-check square"></span> Un emploi stable et sûr</label>
+        <label class="opt-label"><span class="opt-check square"></span> Faire un métier passion</label>
+        <label class="opt-label"><span class="opt-check square"></span> Avoir du temps pour ma vie perso</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 39</div>
+      <div class="question-text">Dans ton futur travail, qu'est-ce que tu veux éviter ?</div>
+      <div class="question-falc">Coche ce que tu ne veux pas, ou ne peux pas, faire. Plusieurs réponses possibles.</div>
+      <div class="options-grid" id="q39">
+        <label class="opt-label"><span class="opt-check square"></span> Porter des charges lourdes</label>
+        <label class="opt-label"><span class="opt-check square"></span> Rester debout longtemps</label>
+        <label class="opt-label"><span class="opt-check square"></span> Travailler la nuit ou très tôt le matin</label>
+        <label class="opt-label"><span class="opt-check square"></span> Passer la journée sur un écran</label>
+        <label class="opt-label"><span class="opt-check square"></span> Être en contact permanent avec du public</label>
+        <label class="opt-label"><span class="opt-check square"></span> Le bruit ou les environnements agités</label>
+        <label class="opt-label"><span class="opt-check square"></span> Les tâches répétitives</label>
+        <label class="opt-label"><span class="opt-check square"></span> Rien de tout cela</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 40</div>
+      <div class="question-text">Pour tes études ou ton futur travail, tu es prêt(e) à :</div>
+      <div class="question-falc">Jusqu'où tu peux aller, géographiquement ?</div>
+      <div class="options-grid single" id="q40">
+        <label class="opt-label"><span class="opt-check"></span> Partir loin ne me fait pas peur</label>
+        <label class="opt-label"><span class="opt-check"></span> Bouger dans ma région, pourquoi pas</label>
+        <label class="opt-label"><span class="opt-check"></span> Je préfère rester près de chez moi</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 41</div>
+      <div class="question-text">Qu'est-ce qui te freine le plus quand tu penses à ton orientation ?</div>
+      <div class="question-falc">Qu'est-ce qui t'inquiète ou te bloque ? Plusieurs réponses possibles.</div>
+      <div class="options-grid" id="q41">
+        <label class="opt-label"><span class="opt-check square"></span> Je ne sais pas quoi choisir</label>
+        <label class="opt-label"><span class="opt-check square"></span> J'ai peur de me tromper de voie</label>
+        <label class="opt-label"><span class="opt-check square"></span> Mes résultats scolaires</label>
+        <label class="opt-label"><span class="opt-check square"></span> Le coût des études</label>
+        <label class="opt-label"><span class="opt-check square"></span> Le manque de confiance en moi</label>
+        <label class="opt-label"><span class="opt-check square"></span> La pression de mon entourage</label>
+        <label class="opt-label"><span class="opt-check square"></span> Aucun frein particulier</label>
+      </div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 42</div>
+      <div class="question-text">Entre salaire et passion, où places-tu le curseur ?</div>
+      <div class="question-falc">Qu'est-ce qui compte le plus : gagner beaucoup, ou adorer ce que tu fais ?</div>
+      <div class="scale-wrap" id="q42">
+        <button class="scale-btn" onclick="selectScale('q42',this,1)">1</button><button class="scale-btn" onclick="selectScale('q42',this,2)">2</button><button class="scale-btn" onclick="selectScale('q42',this,3)">3</button><button class="scale-btn" onclick="selectScale('q42',this,4)">4</button><button class="scale-btn" onclick="selectScale('q42',this,5)">5</button>
+      </div>
+      <div class="scale-labels"><span>La passion d'abord</span><span>Le salaire d'abord</span></div>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 43</div>
+      <div class="question-text">Quand tu étais enfant, quel métier te faisait rêver ? Et aujourd'hui, si tout était possible ?</div>
+      <div class="question-falc">Écris ton métier de rêve, même s'il te paraît impossible. C'est important.</div>
+      <textarea id="q43" placeholder="Ex : petit(e) je voulais être vétérinaire... aujourd'hui je rêverais de..."></textarea>
+    </div>
+
+    <div class="question-block">
+      <div class="question-num">Question 44</div>
+      <div class="question-text">Y a-t-il autre chose d'important que tu veux dire ?</div>
+      <div class="question-falc">Espace libre. Écris ce que tu veux sur ta situation, tes questions, tes doutes.</div>
+      <textarea id="q44" placeholder="Espace libre..."></textarea>
+    </div>
+
+    <div class="nav-btns">
+      <button class="btn btn-prev" onclick="goTo(3)">← Retour</button>
+      <button class="btn btn-next" style="background:#4caf93;font-size:18px;padding:14px 32px;" onclick="generateResults()">Voir mes résultats ✓</button>
+    </div>
+  </div>
+
+  <!-- RESULTATS -->
+  <div class="section" id="section-result">
+    <div class="section-header">
+      <div class="section-badge">Résultats</div>
+      <div class="section-title">Ta boussole personnalisée</div>
+    </div>
+    <div class="result-tabs">
+      <button class="rtab active" onclick="switchTab('synthese',this)">Synthèse</button>
+      <button class="rtab" onclick="switchTab('rapport',this)">Rapport complet</button>
+      <button class="rtab" onclick="switchTab('metiers',this)">Pistes métiers</button>
+    </div>
+    <div class="rtab-content active" id="tab-synthese">
+      <div id="profile-banner-wrap"></div>
+      <div class="result-card"><h3>🧲 Ce qui t'attire (profil RIASEC)</h3><div id="riasec-display"></div></div>
+      <div class="result-card"><h3>📊 Tes dimensions clés</h3><div id="scores-display"></div></div>
+      <div class="result-card"><h3>⚖️ Points forts vs Axes de progression</h3><div class="vs-grid" id="vs-display"></div></div>
+      <div class="result-card"><h3>🎯 Ton profil en un coup d'oeil</h3><div class="radar-wrap"><canvas id="radarChart"></canvas></div></div>
+      <div id="contraintes-display"></div>
+    </div>
+    <div class="rtab-content" id="tab-rapport">
+      <div class="result-card"><h3>🧠 Ta personnalité</h3><div id="rapport-perso"></div></div>
+      <div class="result-card"><h3>⚖️ Analyse détaillée : forces et axes de progression</h3><div id="rapport-vs"></div></div>
+      <div class="result-card"><h3>🌱 Tes envies & valeurs</h3><div id="rapport-aspirations"></div></div>
+      <div class="result-card"><h3>🧭 Cohérence de ton projet</h3><div id="rapport-coherence"></div></div>
+      <div class="result-card"><h3>📋 Conseils personnalisés</h3><div id="rapport-recos"></div></div>
+      <div id="rapport-handicap-section"></div>
+    </div>
+    <div class="rtab-content" id="tab-metiers">
+      <div class="result-card"><h3>💼 Tes pistes de métiers & formations</h3><div id="metiers-display"></div></div>
+      <div class="result-card"><h3>🛤 Tes prochaines étapes concrètes</h3><div id="voies-display"></div></div>
+    </div>
+    <button class="pdf-btn" onclick="printReport()"><span>⬇</span> Télécharger mon rapport (PDF)</button>
+    <p style="font-size:13px;color:var(--text-muted);margin-top:10px;">Dans la fenêtre d'impression, choisis "Enregistrer en PDF" comme destination.</p>
+    <p class="disclaimer">⚠️ Ce test est un outil pour réfléchir et explorer. Il ne décide pas à ta place et ne remplace pas un échange avec un(e) PsyEN, un(e) conseiller(ère) d'orientation ou tes proches. Ton avenir t'appartient.</p>
+  </div>
+
+</div><!-- /container -->
+
+<footer>
+  <strong>23 MindSet</strong> <span class="footer-sep">|</span>
+  © 2025–2026 Fares ATBA <span class="footer-sep">|</span>
+  Tous droits réservés <span class="footer-sep">|</span>
+  <em style="font-size:12px;">L'Humain avant tout</em>
+</footer>
+
+<script>
+let currentSection = 0;
+let radarChartInstance = null;
+const steps = ['Accueil','Étape 1','Étape 2','Étape 3','Étape 4','Résultats'];
+
+// ====== RIASEC ITEMS (Q19-36 → indices qr0-qr17, numérotées 20-37) ======
+const riasecItems = [
+  {l:'R', t:'Travailler avec tes mains ou des outils'},
+  {l:'R', t:'Réparer, monter ou fabriquer des objets'},
+  {l:'R', t:'Travailler dehors, bouger, être en mouvement'},
+  {l:'I', t:'Comprendre comment les choses fonctionnent'},
+  {l:'I', t:'Faire des recherches, analyser des informations'},
+  {l:'I', t:'Résoudre des problèmes ou des énigmes compliquées'},
+  {l:'A', t:'Créer ou imaginer des choses nouvelles'},
+  {l:'A', t:'Faire des activités artistiques (dessin, musique, vidéo, photo...)'},
+  {l:'A', t:'Avoir de la liberté, sans cadre trop strict'},
+  {l:'S', t:'Aider ou conseiller des personnes'},
+  {l:'S', t:'Expliquer ou apprendre des choses aux autres'},
+  {l:'S', t:'Être en contact direct avec des gens'},
+  {l:'E', t:'Convaincre ou négocier'},
+  {l:'E', t:'Diriger un projet ou une équipe'},
+  {l:'E', t:'Monter ton propre projet, ta propre entreprise'},
+  {l:'C', t:'Faire des tâches précises et bien organisées'},
+  {l:'C', t:'Suivre des règles et des méthodes claires'},
+  {l:'C', t:'Classer, vérifier, gérer des chiffres ou des documents'},
+];
+const riasecNames = {
+  R:'Réaliste (manuel & terrain)', I:'Investigateur (analyse & recherche)',
+  A:'Artistique (création & liberté)', S:'Social (aide & relation)',
+  E:'Entreprenant (action & influence)', C:'Conventionnel (organisation & rigueur)'
+};
+const profilsJeunes = {
+  R:{n:'Profil Bâtisseur & Concret', i:'🔧'}, I:{n:'Profil Analyste & Curieux', i:'🔬'},
+  A:{n:'Profil Créatif & Imaginatif', i:'🎨'}, S:{n:'Profil Social & Humain', i:'🤝'},
+  E:{n:'Profil Leader & Entreprenant', i:'🚀'}, C:{n:'Profil Organisé & Fiable', i:'🏗️'}
+};
+
+// ====== CATALOGUE METIERS JEUNES ======
+// lvl: court (CAP/Bac pro) / moyen (Bac+2/3) / long (Bac+5+) ; alt: alternance fréquente
+// phys / debout / ecran / pub / nuit : contraintes
+const metiers = [
+  {n:'Développeur / Développeuse (web, jeux vidéo, apps)', r:'IC', lvl:'moyen', alt:1, mat:['Maths','Technologie'], act:['Jeux vidéo'], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'BTS SIO, BUT Informatique, écoles spécialisées', v:'Accessible via Parcoursup ou écoles avec prépa intégrée, alternance possible dès le BTS'},
+  {n:'Technicien(ne) réseaux / cybersécurité', r:'IR', lvl:'moyen', alt:1, mat:['Technologie','Maths'], act:['Jeux vidéo'], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'BTS SIO option SISR, BUT Réseaux & Télécoms', v:'Secteur qui recrute énormément, alternance très répandue'},
+  {n:'Infirmier / Infirmière', r:'SI', lvl:'moyen', alt:0, mat:['Sciences'], act:[], phys:0,debout:1,ecran:0,pub:1,nuit:1, f:'IFSI (3 ans, via Parcoursup)', v:'Études rémunérées possibles via certains contrats, métier en forte demande'},
+  {n:'Aide-soignant(e)', r:'S', lvl:'court', alt:1, mat:['Sciences'], act:['Aider'], phys:1,debout:1,ecran:0,pub:1,nuit:1, f:'DEAS (1 an, sans condition de diplôme)', v:'Formation courte, emploi quasi garanti, passerelle vers infirmier ensuite'},
+  {n:'Éducateur(trice) spécialisé(e)', r:'SA', lvl:'moyen', alt:1, mat:['Français'], act:['Aider','M\'occuper d\'enfants'], phys:0,debout:1,ecran:0,pub:1,nuit:0, f:'DEES (Bac+3, via Parcoursup)', v:'Formation en alternance possible, métier de sens'},
+  {n:'Professeur(e) des écoles', r:'SC', lvl:'long', alt:0, mat:['Français','Histoire-géo'], act:['M\'occuper d\'enfants'], phys:0,debout:1,ecran:0,pub:1,nuit:0, f:'Licence puis Master MEEF (Bac+5) + concours CRPE', v:'Parcours long mais sécurisé (fonction publique)'},
+  {n:'Auxiliaire de puériculture / petite enfance', r:'S', lvl:'court', alt:1, mat:[], act:['M\'occuper d\'enfants'], phys:1,debout:1,ecran:0,pub:1,nuit:0, f:'CAP AEPE ou DEAP', v:'Formation courte, secteur qui recrute partout en France'},
+  {n:'Commercial(e) / Business developer', r:'E', lvl:'moyen', alt:1, mat:['Économie','Langues étrangères'], act:[], phys:0,debout:0,ecran:0,pub:1,nuit:0, f:'BTS NDRC, BUT Techniques de Commercialisation', v:'Alternance très répandue, salaires attractifs rapidement'},
+  {n:'Conseiller(ère) de vente / commerce', r:'ES', lvl:'court', alt:1, mat:['Économie'], act:['Petits jobs'], phys:0,debout:1,ecran:0,pub:1,nuit:0, f:'CAP Équipier polyvalent, Bac pro Métiers du commerce', v:'Insertion rapide, évolution vers manager possible'},
+  {n:'Comptable / gestionnaire', r:'C', lvl:'moyen', alt:1, mat:['Maths','Économie'], act:[], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'BTS CG, BUT GEA, DCG', v:'Alternance fréquente, débouchés stables et nombreux'},
+  {n:'Assistant(e) ressources humaines', r:'CS', lvl:'moyen', alt:1, mat:['Français','Économie'], act:[], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'BUT GEA, licence puis licence pro RH', v:'Alternance possible dès Bac+2'},
+  {n:'Graphiste / motion designer', r:'A', lvl:'moyen', alt:1, mat:['Arts'], act:['Créer'], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'DNMADE, BTS Design graphique, écoles d\'art', v:'Un portfolio compte autant que le diplôme : commence à créer dès maintenant'},
+  {n:'Photographe / vidéaste / monteur(se)', r:'AR', lvl:'court', alt:1, mat:['Arts'], act:['Créer','Créer du contenu'], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'Bac pro photo, BTS Métiers de l\'audiovisuel', v:'Tes créations actuelles (montages, photos) sont déjà un début de portfolio'},
+  {n:'Community manager / métiers du digital', r:'AE', lvl:'moyen', alt:1, mat:['Français'], act:['Créer du contenu'], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'BUT Information-Communication, BTS Communication', v:'Si tu crées déjà du contenu, tu as une longueur d\'avance'},
+  {n:'Journaliste / métiers de l\'info', r:'AI', lvl:'long', alt:0, mat:['Français','Histoire-géo'], act:['Lire'], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'BUT Info-Com puis école de journalisme', v:'Secteur exigeant : commence un blog ou un média étudiant dès maintenant'},
+  {n:'Avocat(e) / juriste', r:'EI', lvl:'long', alt:0, mat:['Français','Histoire-géo'], act:['Lire'], phys:0,debout:0,ecran:0,pub:0,nuit:0, f:'Licence de droit puis Master (+ CRFPA pour avocat)', v:'Parcours long mais la licence de droit ouvre énormément de portes'},
+  {n:'Ingénieur(e) (informatique, BTP, industrie...)', r:'IR', lvl:'long', alt:1, mat:['Maths','Sciences'], act:[], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'Prépa + école, ou BUT puis école d\'ingénieurs', v:'Le BUT est une excellente voie d\'accès, alternance possible en école'},
+  {n:'Architecte', r:'AI', lvl:'long', alt:0, mat:['Arts','Maths'], act:['Créer'], phys:0,debout:0,ecran:1,pub:0,nuit:0, f:'ENSA (5 ans, via Parcoursup)', v:'Prépare un dossier créatif, la motivation compte beaucoup en entretien'},
+  {n:'Mécanicien(ne) auto / moto', r:'R', lvl:'court', alt:1, mat:['Technologie'], act:['Bricoler'], phys:1,debout:1,ecran:0,pub:0,nuit:0, f:'CAP Maintenance des véhicules, Bac pro MV', v:'Alternance dès le CAP, emploi assuré, évolution vers la haute technologie (électrique)'},
+  {n:'Électricien(ne) / domotique', r:'R', lvl:'court', alt:1, mat:['Technologie'], act:['Bricoler'], phys:1,debout:1,ecran:0,pub:0,nuit:0, f:'CAP Électricien, Bac pro MELEC', v:'Métier en très forte demande, salaires en hausse, indépendance possible'},
+  {n:'Menuisier(ère) / métiers du bois', r:'RA', lvl:'court', alt:1, mat:['Technologie','Arts'], act:['Bricoler','Créer'], phys:1,debout:1,ecran:0,pub:0,nuit:0, f:'CAP Menuisier, Bac pro', v:'Artisanat valorisé, alternance dès 15 ans possible, création d\'entreprise fréquente'},
+  {n:'Cuisinier(ère) / chef(fe)', r:'RA', lvl:'court', alt:1, mat:[], act:['Cuisiner'], phys:1,debout:1,ecran:0,pub:0,nuit:0, f:'CAP Cuisine, Bac pro, BTS MHR', v:'Alternance très répandue, possibilité de voyager et d\'évoluer vite'},
+  {n:'Boulanger(ère) / pâtissier(ère)', r:'RA', lvl:'court', alt:1, mat:[], act:['Cuisiner','Créer'], phys:1,debout:1,ecran:0,pub:0,nuit:1, f:'CAP Boulanger ou Pâtissier', v:'Artisanat qui recrute, installation à son compte fréquente'},
+  {n:'Coiffeur(se) / esthéticien(ne)', r:'AS', lvl:'court', alt:1, mat:['Arts'], act:['Créer'], phys:0,debout:1,ecran:0,pub:1,nuit:0, f:'CAP Métiers de la coiffure / Esthétique', v:'Alternance dès le CAP, métier créatif et relationnel, indépendance possible'},
+  {n:'Éducateur(trice) sportif(ve) / coach', r:'SE', lvl:'moyen', alt:1, mat:['Sport'], act:['Faire du sport'], phys:1,debout:1,ecran:0,pub:1,nuit:0, f:'BPJEPS ou licence STAPS', v:'Si le sport est ta passion, le BPJEPS est accessible dès 18 ans'},
+  {n:'Métiers des animaux (soigneur, auxiliaire vétérinaire...)', r:'RS', lvl:'court', alt:1, mat:['Sciences'], act:[], phys:1,debout:1,ecran:0,pub:0,nuit:0, f:'Bac pro, certifications soigneur animalier, formation ASV', v:'Secteur très demandé : les stages et le bénévolat (refuges) font la différence'},
+  {n:'Paysagiste / jardinier(ère)', r:'RA', lvl:'court', alt:1, mat:['Sciences'], act:['Bricoler'], phys:1,debout:1,ecran:0,pub:0,nuit:0, f:'CAP Jardinier paysagiste, Bac pro Aménagements paysagers', v:'Travail en extérieur, alternance fréquente, secteur en croissance'},
+  {n:'Logistique / transport / supply chain', r:'RC', lvl:'moyen', alt:1, mat:[], act:[], phys:1,debout:1,ecran:0,pub:0,nuit:0, f:'Bac pro Logistique, BTS GTLA, BUT QLIO', v:'Secteur géant qui recrute à tous les niveaux, évolution rapide possible'},
+  {n:'Militaire / pompier / métiers de la sécurité', r:'RS', lvl:'court', alt:0, mat:['Sport'], act:['Faire du sport','Aider'], phys:1,debout:1,ecran:0,pub:1,nuit:1, f:'Recrutement armées dès 17 ans et demi, concours, cadets de la sécurité civile', v:'Formation rémunérée dès l\'engagement, permis et diplômes financés'},
+  {n:'Tourisme / hôtellerie / événementiel', r:'SE', lvl:'moyen', alt:1, mat:['Langues étrangères'], act:[], phys:0,debout:1,ecran:0,pub:1,nuit:0, f:'BTS Tourisme, BTS MHR, BUT', v:'Les langues sont ton meilleur atout, stages à l\'étranger possibles'},
+  {n:'Kinésithérapeute / métiers du soin du corps', r:'SI', lvl:'long', alt:0, mat:['Sciences','Sport'], act:['Faire du sport'], phys:1,debout:1,ecran:0,pub:1,nuit:0, f:'PASS/LAS ou licence STAPS puis IFMK (5 ans)', v:'Sélectif mais débouchés excellents, cabinet possible'},
+  {n:'Psychologue', r:'SI', lvl:'long', alt:0, mat:['Sciences','Français'], act:['Aider','Lire'], phys:0,debout:0,ecran:0,pub:1,nuit:0, f:'Licence + Master de psychologie (Bac+5)', v:'Parcours long, spécialisations variées (enfants, travail, clinique...)'},
+  {n:'Création d\'entreprise / entrepreneuriat', r:'EA', lvl:'moyen', alt:0, mat:['Économie'], act:['Créer du contenu','Petits jobs'], phys:0,debout:0,ecran:0,pub:0,nuit:0, f:'Tous les parcours y mènent : BTS, BUT, licences pro + accompagnement (Pépite, BGE)', v:'Le statut étudiant-entrepreneur permet de créer pendant tes études'},
+];
+
+// ====== RENDER RIASEC ======
+function renderRiasec() {
+  document.getElementById('riasec-questions').innerHTML = riasecItems.map((it, i) => `
+    <div class="question-block">
+      <div class="question-num">Question ${20+i}</div>
+      <div class="question-text">${it.t}</div>
+      <div class="question-falc">Est-ce que cette activité te plairait ?</div>
+      <div class="scale-wrap" id="qr${i}">
+        ${[1,2,3,4,5].map(v=>`<button class="scale-btn" onclick="selectScale('qr${i}',this,${v})">${v}</button>`).join('')}
+      </div>
+      <div class="scale-labels"><span>Pas du tout</span><span>Énormément</span></div>
+    </div>`).join('');
+}
+
+// ====== THEME / NAV ======
+function toggleTheme() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme') === 'dark';
+  html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  document.getElementById('themeBtn').innerHTML = isDark
+    ? '<span class="theme-icon">🌙</span><span>Mode sombre</span>'
+    : '<span class="theme-icon">☀️</span><span>Mode clair</span>';
+}
+function renderDots() {
+  document.getElementById('progress-steps').innerHTML =
+    steps.map((_,i)=>`<div class="step-dot" id="dot${i}"></div>`).join('');
+}
+function stepIndexOf(s) { return s === 'result' ? steps.length-1 : s; }
+function updateProgress(s) {
+  const idx = stepIndexOf(s);
+  for(let i=0;i<steps.length;i++) {
+    const d = document.getElementById('dot'+i);
+    if(!d) continue;
+    d.className = i < idx ? 'step-dot done' : (i === idx ? 'step-dot active' : 'step-dot');
+  }
+  document.getElementById('step-label-txt').textContent = steps[idx];
+  document.getElementById('progress-pct').textContent = Math.round((idx/(steps.length-1))*100)+'%';
+}
+function startTest() {
+  if(!document.getElementById('qr0')) renderRiasec();
+  goTo(1);
+}
+function goTo(n) {
+  const prev = currentSection === 'result' ? 'section-result' : 'section-'+currentSection;
+  document.getElementById(prev)?.classList.remove('active');
+  currentSection = n;
+  const next = n === 'result' ? 'section-result' : 'section-'+n;
+  document.getElementById(next)?.classList.add('active');
+  updateProgress(n);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ====== INTERACTIONS ======
+document.addEventListener('click', function(e) {
+  const label = e.target.closest('.opt-label');
+  if(!label) return;
+  const container = label.closest('[id]');
+  if(!container) return;
+  const isSquare = label.querySelector('.opt-check.square') !== null;
+  if(isSquare) label.classList.toggle('selected');
+  else {
+    container.querySelectorAll('.opt-label').forEach(l => l.classList.remove('selected'));
+    label.classList.add('selected');
+  }
+});
+function selectScale(groupId, btn, val) {
+  const c = document.getElementById(groupId);
+  c.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  btn.dataset.val = val;
+}
+function getScaleVal(groupId, def=3) {
+  const c = document.getElementById(groupId);
+  if(!c) return def;
+  const sel = c.querySelector('.scale-btn.selected');
+  return sel ? parseInt(sel.dataset.val) : def;
+}
+function getSelectedTexts(groupId) {
+  const c = document.getElementById(groupId);
+  if(!c) return [];
+  return Array.from(c.querySelectorAll('.opt-label.selected')).map(l => l.textContent.trim());
+}
+function getFirstSelected(groupId) { return getSelectedTexts(groupId)[0] || null; }
+
+// ====== MOTEUR METIERS JEUNES ======
+function memeMetier(txtA, txtB) {
+  const a = (txtA||'').toLowerCase(); const b = (txtB||'').toLowerCase();
+  if(!a || !b) return false;
+  const mots = a.split(/[\s,\/()]+/).filter(w=>w.length>4);
+  return mots.some(w=>b.includes(w));
+}
+function buildMetiers(d, riasec) {
+  const avoid = d.avoid || [];
+  const noPhys = avoid.some(a=>a.includes('charges')) || d.handicaps.some(h=>h.includes('moteur')||h.includes('fatigue'));
+  const noDebout = avoid.some(a=>a.includes('debout')) || d.handicaps.some(h=>h.includes('moteur'));
+  const noEcran = avoid.some(a=>a.includes('écran'));
+  const noPub = avoid.some(a=>a.includes('public'));
+  const noNuit = avoid.some(a=>a.includes('nuit'));
+
+  const sorted = Object.entries(riasec).sort((a,b)=>b[1]-a[1]);
+  const topLetters = sorted.slice(0,3).map(x=>x[0]);
+
+  let lvlPref = null;
+  if(d.dureeEtudes) {
+    if(d.dureeEtudes.includes('Courtes')) lvlPref = 'court';
+    else if(d.dureeEtudes.includes('Moyennes')) lvlPref = 'moyen';
+    else if(d.dureeEtudes.includes('Longues')) lvlPref = 'long';
+  }
+  const wantsAlt = d.alternance && d.alternance.includes('beaucoup');
+
+  const scored = metiers
+    .filter(m => !(noPhys && m.phys) && !(noDebout && m.debout) && !(noEcran && m.ecran) && !(noPub && m.pub) && !(noNuit && m.nuit))
+    .map(m => {
+      let score = 0;
+      const reasons = [];
+      // Match RIASEC
+      [...m.r].forEach((letter, pos) => {
+        if(topLetters.includes(letter)) {
+          score += (3 - topLetters.indexOf(letter)) * (pos === 0 ? 4 : 3);
+          reasons.push(riasecNames[letter].split(' (')[0].toLowerCase());
+        }
+      });
+      // Matières préférées
+      if(m.mat.some(mt => d.matieres.some(um => um.includes(mt)))) {
+        score += 3; reasons.push('tes matières préférées');
+      }
+      // Activités hors école
+      if(m.act.some(ac => d.activites.some(ua => ua.includes(ac)))) {
+        score += 4; reasons.push('ce que tu fais déjà par plaisir');
+      }
+      // Durée d'études
+      if(lvlPref && m.lvl === lvlPref) { score += 4; }
+      else if(lvlPref && ((lvlPref==='court' && m.lvl==='long')||(lvlPref==='long' && m.lvl==='court'))) { score -= 2; }
+      // Alternance
+      if(wantsAlt && m.alt) { score += 2; reasons.push('l\'alternance y est fréquente'); }
+      // Idée de métier déjà exprimée → mise en avant
+      const isIdea = memeMetier(d.ideeMetier, m.n) || memeMetier(d.reve, m.n);
+      if(isIdea) { score += 15; }
+      return {m, score, reasons:[...new Set(reasons)], isIdea};
+    })
+    .filter(x => x.score > 0)
+    .sort((a,b)=>b.score-a.score);
+
+  return scored.slice(0,7);
+}
+
+// ====== ANALYSE FORCES / AXES (version jeune) ======
+function buildAnalysis(d) {
+  const forces = []; const axes = [];
+  const dimRules = [
+    { val:d.comm, label:'Aisance relationnelle',
+      force:"Tu parles facilement avec les gens. C'est un super atout pour les oraux, les entretiens, et tous les métiers de contact.",
+      axe:"Parler aux inconnus te demande un effort. C'est très courant à ton âge, et ça se travaille : chaque petite prise de parole compte." },
+    { val:d.orga, label:'Organisation & autonomie',
+      force:"Tu sais t'organiser sans qu'on te le rappelle. C'est LA qualité qui fait la différence dans les études supérieures.",
+      axe:"L'organisation n'est pas ton fort pour l'instant. Pas de panique : un agenda simple et une routine de 5 minutes par jour changent tout." },
+    { val:d.numerique, label:'Compétences numériques',
+      force:"Tu es à l'aise avec les outils numériques au-delà des réseaux. C'est valorisé dans quasiment tous les métiers d'avenir.",
+      axe:"Le numérique (hors réseaux sociaux) reste à développer. Bonne nouvelle : la certification Pix au lycée est faite pour ça." },
+    { val:d.energie, label:'Énergie & motivation',
+      force:"Tu as de l'énergie et de la motivation. C'est ton moteur pour les projets et les défis qui t'attendent.",
+      axe:"Ton niveau d'énergie est bas en ce moment. Si ça dure, parles-en à quelqu'un de confiance : ce n'est pas une fatalité et ça peut s'arranger." },
+    { val:d.changement, label:'Ouverture à la nouveauté',
+      force:"La nouveauté ne te fait pas peur, elle t'attire. C'est précieux pour explorer des pistes et oser des choix originaux.",
+      axe:"Le changement t'insécurise. Tu n'es pas obligé(e) de tout bouleverser : avance par petites étapes, à ton rythme." },
+    { val:d.audace, label:'Audace & prise d\'initiative',
+      force:"Tu oses tenter, même sans garantie de réussir. C'est exactement l'état d'esprit qui fait avancer.",
+      axe:"Tu préfères être sûr(e) avant de te lancer. C'est prudent, mais attention à ne pas laisser passer des occasions par peur de l'échec." },
+  ];
+  dimRules.forEach(r => {
+    if(r.val >= 4) forces.push({ titre:`${r.label} (${r.val}/5)`, arg:r.force });
+    else if(r.val <= 2) axes.push({ titre:`${r.label} (${r.val}/5)`, arg:r.axe });
+  });
+  if(d.critiques && d.critiques.includes('progresser')) forces.push({ titre:'Maturité face aux critiques', arg:"Tu prends les remarques comme un moyen de progresser. C'est rare et précieux : garde ça toute ta vie." });
+  if(d.critiques && d.critiques.includes('bloque')) axes.push({ titre:'Rapport aux critiques', arg:"Les critiques te bloquent. Retiens ceci : une remarque sur ton travail n'est pas une remarque sur TOI. Cette distinction change tout." });
+  if(d.freins.includes('Le manque de confiance en moi')) axes.push({ titre:'Confiance en soi', arg:"Tu identifies toi-même la confiance comme un frein. Elle se construit par l'action : chaque petite réussite est une brique." });
+  if(d.freins.some(f=>f.includes('peur de me tromper'))) axes.push({ titre:'Peur de se tromper', arg:"Sache-le : il n'y a presque plus de choix définitifs. Passerelles, réorientations, formations adultes... se tromper fait partie du parcours normal aujourd'hui." });
+  return { forces, axes };
+}
+
+// ====== CONSEILS (version jeune) ======
+function buildRecommendations(d) {
+  const recos = [];
+  if(d.idee && d.idee.includes('aucune idée')) recos.push({ icon:'🧭', titre:'Lance ton plan d\'exploration', prio:'haute',
+    constat:"Tu n'as aucune idée de métier pour l'instant.",
+    pourquoi:"C'est NORMAL à ton âge — la majorité des adultes ont changé de voie au moins une fois. Mais ne pas savoir ne veut pas dire ne rien faire : explorer, c'est déjà avancer.",
+    action:"Ce mois-ci : regarde 3 vidéos métiers sur onisep.fr ou des chaînes YouTube de métiers, note ce qui t'attire et ce qui te rebute. Le mois prochain : un salon d'orientation ou une journée portes ouvertes. Chaque exploration affine ta boussole." });
+  if(d.freins.some(f=>f.includes('peur de me tromper'))) recos.push({ icon:'🔀', titre:'Apprivoise le droit à l\'erreur', prio:'haute',
+    constat:"Tu as peur de te tromper de voie.",
+    pourquoi:"Le système actuel est plein de passerelles : on peut changer après un semestre, après un BTS, après une licence. Un 'mauvais' choix t'apprend toujours quelque chose sur toi.",
+    action:"Au lieu de chercher LE bon choix parfait, choisis la piste qui t'attire le plus MAINTENANT et qui garde des portes ouvertes (les formations généralistes et les BUT sont parfaits pour ça)." });
+  if(d.freins.some(f=>f.includes('résultats scolaires'))) recos.push({ icon:'📈', titre:'Tes notes ne sont pas ton plafond', prio:'haute',
+    constat:"Tes résultats scolaires t'inquiètent pour ton orientation.",
+    pourquoi:"Les notes mesurent ta performance dans un système précis, pas ta valeur ni ton potentiel professionnel. Beaucoup de voies valorisent la pratique, la motivation et le concret bien plus que les bulletins.",
+    action:"Explore les voies professionnelles et l'alternance : on y apprend en faisant, on est payé, et les employeurs y regardent ta motivation avant tes notes. Les meilleurs artisans et techniciens n'étaient pas toujours les premiers de classe." });
+  if(d.freins.some(f=>f.includes('coût des études'))) recos.push({ icon:'💶', titre:'Des solutions de financement existent', prio:'haute',
+    constat:"Le coût des études te freine.",
+    pourquoi:"L'argent ne devrait jamais être LA raison d'abandonner un projet : il existe l'alternance (études payées + salaire), les bourses sur critères sociaux, et de nombreuses formations publiques quasi gratuites.",
+    action:"Simule ta bourse sur simulateur.lescrous.fr, et regarde les formations en alternance dans ton domaine : tu gagnes entre 27% et 100% du SMIC pendant tes études." });
+  if(d.freins.some(f=>f.includes('pression de mon entourage'))) recos.push({ icon:'🛡️', titre:'Reprends la main sur TON choix', prio:'moyenne',
+    constat:"Tu ressens une pression de ton entourage sur ton orientation.",
+    pourquoi:"Tes proches veulent ton bien, mais c'est toi qui vivras ce métier 35h par semaine pendant des années. Un choix subi mène souvent à un abandon ou un mal-être.",
+    action:"Prépare un échange posé avec eux : montre-leur ce test, tes pistes, tes arguments. Et propose un compromis exploratoire : un stage ou une immersion dans TA piste avant toute décision définitive." });
+  if(d.freins.includes('Le manque de confiance en moi')) recos.push({ icon:'💪', titre:'Construis ta confiance par l\'action', prio:'haute',
+    constat:"Le manque de confiance en toi te freine.",
+    pourquoi:"La confiance ne tombe pas du ciel : elle se construit avec des preuves. Chaque petit défi relevé est une preuve que tu stockes.",
+    action:"Fixe-toi un micro-défi par semaine : poser une question en classe, t'inscrire à une activité, appeler pour un job d'été. Note tes victoires. Dans 3 mois, relis ta liste." });
+  if(d.numerique <= 2) recos.push({ icon:'💻', titre:'Monte en compétences numériques', prio:'moyenne',
+    constat:`Tu as évalué ton niveau numérique à ${d.numerique}/5.`,
+    pourquoi:"Quasiment tous les métiers d'avenir demandent un socle numérique : bureautique, recherche efficace, création de documents.",
+    action:"Travaille ta certification Pix (gratuite, via ton établissement) : elle est reconnue sur Parcoursup et par les employeurs." });
+  if(d.comm <= 2) recos.push({ icon:'🗣️', titre:'Développe ton aisance à l\'oral', prio:'moyenne',
+    constat:`Tu as évalué ton aisance relationnelle à ${d.comm}/5.`,
+    pourquoi:"Le Grand Oral, les entretiens Parcoursup, les entretiens d'embauche : l'oral est partout. Et c'est une compétence qui s'entraîne, pas un don.",
+    action:"Commence petit : une question posée en cours par semaine. Si tu veux accélérer : théâtre, débat, association — les progrès sont rapides et visibles." });
+  if(d.audace >= 4 && d.changement >= 4) recos.push({ icon:'🚀', titre:'Ton profil audacieux est une force rare', prio:'moyenne',
+    constat:"Tu oses ET tu aimes la nouveauté.",
+    pourquoi:"Ce profil s'épanouit dans les environnements qui bougent : startups, création, métiers émergents, international.",
+    action:"Garde des options ouvertes vers l'entrepreneuriat (statut étudiant-entrepreneur), les mobilités (Erasmus+) et les secteurs neufs (IA, transition écologique, nouveaux médias)." });
+  if(recos.length === 0) recos.push({ icon:'🌟', titre:'Ton profil est solide : vise haut', prio:'moyenne',
+    constat:"Aucun frein majeur n'est ressorti de tes réponses.",
+    pourquoi:"Quand rien ne bloque, le seul risque est de viser trop bas par habitude ou par confort.",
+    action:"Autorise-toi à regarder les formations sélectives ou ambitieuses qui te font envie. Tu as le droit de viser ce qui te fait rêver." });
+  return recos;
+}
+
+function buildCoherence(d, topProfile) {
+  const parts = [];
+  if(d.idee) parts.push(`<strong>Où tu en es :</strong> ${d.idee.toLowerCase()}.`);
+  if(d.ideeMetier) parts.push(`Tu as mentionné : « ${d.ideeMetier} ». Regarde l'onglet Pistes métiers : si cette idée correspond à ton profil, elle y est mise en avant avec le chemin pour y arriver.`);
+  if(d.idee && d.idee.includes('aucune idée') && topProfile)
+    parts.push(`Pas d'idée précise, mais ton profil parle pour toi : tes intérêts pointent vers le pôle <strong>${topProfile}</strong>. C'est ta direction de départ pour explorer.`);
+  if(d.dureeEtudes && d.dureeEtudes.includes('sais pas'))
+    parts.push("Tu ne sais pas encore combien de temps étudier — c'est ok. Conseil : privilégie les voies avec passerelles (BUT, BTS) qui permettent de s'arrêter à Bac+3 OU de continuer.");
+  if(d.reve) parts.push(`Ton métier de rêve (« ${d.reve.length > 60 ? d.reve.substring(0,60)+'...' : d.reve} ») n'est pas un détail : même s'il semble inaccessible, il révèle ce qui compte pour toi. Demande-toi : qu'est-ce qui me fait rêver là-dedans ? Cette réponse est ta boussole.`);
+  if(parts.length === 0) parts.push("Tes réponses dessinent une direction. La prochaine étape : la confronter au réel avec des stages, des salons et des rencontres.");
+  return parts.join('<br><br>');
+}
+
+// ====== GENERATION ======
+function generateResults() {
+  goTo('result');
+  const d = {
+    prenom: document.getElementById('q_prenom')?.value || 'Toi',
+    comm: getScaleVal('q9'), orga: getScaleVal('q10'),
+    numerique: getScaleVal('q11'), energie: getScaleVal('q12'),
+    changement: getScaleVal('q13'), audace: getScaleVal('q14'),
+    matieres: getSelectedTexts('q3'),
+    activites: getSelectedTexts('q4'),
+    idee: getFirstSelected('q5'),
+    ideeMetier: document.getElementById('q6')?.value || '',
+    handicaps: getSelectedTexts('q_handicap'),
+    dureeEtudes: getFirstSelected('q7'),
+    alternance: getFirstSelected('q8'),
+    perso: getFirstSelected('q15'),
+    probleme: getFirstSelected('q16'),
+    groupe: getFirstSelected('q17'),
+    critiques: getFirstSelected('q18'),
+    apprentissage: getFirstSelected('q19'),
+    valeurs: getSelectedTexts('q38'),
+    avoid: getSelectedTexts('q39').filter(a=>!a.includes('Rien')),
+    mobilite: getFirstSelected('q40'),
+    freins: getSelectedTexts('q41'),
+    reve: document.getElementById('q43')?.value || ''
+  };
+
+  // RIASEC
+  const riasec = {R:0,I:0,A:0,S:0,E:0,C:0};
+  riasecItems.forEach((it,i) => { riasec[it.l] += getScaleVal('qr'+i, 3); });
+  const sorted = Object.entries(riasec).sort((a,b)=>b[1]-a[1]);
+  const topLetter = sorted[0][0];
+  const profil = profilsJeunes[topLetter];
+
+  document.getElementById('profile-banner-wrap').innerHTML = `
+    <div class="profile-banner">
+      <div class="profile-icon">${profil.i}</div>
+      <div><div class="profile-name">${d.prenom}</div><div class="profile-type">${profil.n}</div></div>
+    </div>`;
+
+  document.getElementById('riasec-display').innerHTML =
+    sorted.map(([l,v]) =>
+      `<div class="score-row"><div class="score-label">${riasecNames[l]}</div><div class="score-bar-bg"><div class="score-bar-fill" style="width:${(v/15)*100}%"></div></div><div class="score-val">${v}</div></div>`
+    ).join('');
+
+  const dims = [
+    {label:'Aisance relationnelle', val:d.comm},{label:'Organisation', val:d.orga},
+    {label:'Numérique', val:d.numerique},{label:'Énergie & motivation', val:d.energie},
+    {label:'Ouverture à la nouveauté', val:d.changement},{label:'Audace', val:d.audace},
+  ];
+  document.getElementById('scores-display').innerHTML = dims.map(x =>
+    `<div class="score-row"><div class="score-label">${x.label}</div><div class="score-bar-bg"><div class="score-bar-fill" style="width:${(x.val/5)*100}%"></div></div><div class="score-val">${x.val}/5</div></div>`
+  ).join('');
+
+  const analysis = buildAnalysis(d);
+  document.getElementById('vs-display').innerHTML = `
+    <div class="vs-col forces"><div class="vs-col-title">💪 Points forts</div>
+      ${analysis.forces.length>0 ? analysis.forces.map(f=>`<div class="vs-item"><strong>${f.titre}</strong></div>`).join('') : '<div class="vs-empty">Voir le rapport complet pour le détail.</div>'}</div>
+    <div class="vs-col axes"><div class="vs-col-title">🎯 Axes de progression</div>
+      ${analysis.axes.length>0 ? analysis.axes.map(a=>`<div class="vs-item"><strong>${a.titre}</strong></div>`).join('') : '<div class="vs-empty">Aucun axe critique. Bravo !</div>'}</div>`;
+  document.getElementById('rapport-vs').innerHTML = `
+    <div class="vs-grid">
+      <div class="vs-col forces"><div class="vs-col-title">💪 Tes points forts</div>
+        ${analysis.forces.length>0 ? analysis.forces.map(f=>`<div class="vs-item"><strong>${f.titre}</strong><span>${f.arg}</span></div>`).join('') : '<div class="vs-empty">Tes scores sont équilibrés. Ta force est peut-être justement cette polyvalence.</div>'}</div>
+      <div class="vs-col axes"><div class="vs-col-title">🎯 Tes axes de progression</div>
+        ${analysis.axes.length>0 ? analysis.axes.map(a=>`<div class="vs-item"><strong>${a.titre}</strong><span>${a.arg}</span></div>`).join('') : '<div class="vs-empty">Rien de critique. Continue à approfondir ce que tu aimes.</div>'}</div>
+    </div>`;
+
+  if(radarChartInstance) { radarChartInstance.destroy(); radarChartInstance = null; }
+  setTimeout(() => {
+    const ctx = document.getElementById('radarChart');
+    if(ctx) {
+      radarChartInstance = new Chart(ctx, {
+        type:'radar',
+        data:{ labels:['Relationnel','Organisation','Numérique','Énergie','Ouverture','Audace'],
+          datasets:[{label:d.prenom,data:[d.comm,d.orga,d.numerique,d.energie,d.changement,d.audace],
+            backgroundColor:'rgba(226,86,103,0.2)',borderColor:'#E25667',
+            pointBackgroundColor:'#E25667',pointBorderColor:'#fff',borderWidth:2}] },
+        options:{ scales:{r:{min:0,max:5,ticks:{stepSize:1,color:'#aaa',backdropColor:'transparent'},
+            grid:{color:'rgba(150,150,150,0.2)'},pointLabels:{color:'#888',font:{size:12}}}},
+          plugins:{legend:{display:false}},elements:{line:{tension:0.3}} }
+      });
+    }
+  }, 200);
+
+  const realHandi = d.handicaps.filter(h=>!h.includes('Aucun'));
+  const allConstraints = [...realHandi, ...d.avoid];
+  document.getElementById('contraintes-display').innerHTML = allConstraints.length>0 ? `
+    <div class="result-card"><h3>🤝 Tes besoins pris en compte</h3>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">Ces éléments ont été intégrés dans l'analyse et le filtrage des pistes métiers.</p>
+    <div>${allConstraints.map(h=>`<span class="constraint-badge">⚠️ ${h}</span>`).join('')}</div></div>` : '';
+
+  document.getElementById('rapport-perso').innerHTML = `
+    <p style="margin-bottom:12px;">Ton profil dominant : <strong style="color:var(--accent)">${profil.n}</strong></p>
+    <div class="tag-wrap" style="margin-bottom:14px;">${d.perso?`<span class="tag">${d.perso}</span>`:''} ${d.groupe?`<span class="tag">${d.groupe}</span>`:''}</div>
+    <div class="reco-item"><span class="reco-icon">🧩</span><div class="reco-text"><strong>Face à un problème</strong>${d.probleme||'Non renseigné'}</div></div>
+    <div class="reco-item"><span class="reco-icon">📣</span><div class="reco-text"><strong>Face aux critiques</strong>${d.critiques||'Non renseigné'}</div></div>
+    <div class="reco-item"><span class="reco-icon">📚</span><div class="reco-text"><strong>Ta façon d'apprendre</strong>${d.apprentissage||'Non renseigné'} — garde ça en tête pour choisir le FORMAT de tes études (pratique vs théorique, alternance vs classique).</div></div>`;
+
+  document.getElementById('rapport-aspirations').innerHTML = `
+    <p style="margin-bottom:10px;"><strong>Ce qui compte pour toi :</strong></p>
+    ${d.valeurs.length>0?`<div class="tag-wrap">${d.valeurs.map(v=>`<span class="tag">${v}</span>`).join('')}</div>`:'<p style="color:var(--text-muted)">Non renseigné</p>'}
+    ${d.matieres.length>0?`<div class="reco-item" style="margin-top:14px;"><span class="reco-icon">📖</span><div class="reco-text"><strong>Tes matières préférées</strong>${d.matieres.join(', ')}</div></div>`:''}
+    ${d.activites.length>0?`<div class="reco-item"><span class="reco-icon">🎮</span><div class="reco-text"><strong>Ce que tu aimes faire</strong>${d.activites.join(', ')}</div></div>`:''}
+    ${d.reve?`<div class="reco-item"><span class="reco-icon">✨</span><div class="reco-text"><strong>Ton métier de rêve</strong>${d.reve}</div></div>`:''}`;
+
+  document.getElementById('rapport-coherence').innerHTML = `<div class="coherence-box">${buildCoherence(d, profil.n)}</div>`;
+
+  const recos = buildRecommendations(d);
+  recos.sort((a,b) => (a.prio === 'haute' ? -1 : 1) - (b.prio === 'haute' ? -1 : 1));
+  document.getElementById('rapport-recos').innerHTML = `
+    ${d.freins.length>0?`<p style="font-size:14px;color:var(--text-muted);margin-bottom:8px;">Ce qui te freine aujourd'hui :</p><div class="tag-wrap" style="margin-bottom:18px;">${d.freins.map(f=>`<span class="tag grey">${f}</span>`).join('')}</div>`:''}
+    ${recos.map(r=>`
+      <div class="reco-card">
+        <div class="reco-card-title"><span>${r.icon}</span> ${r.titre}
+          <span class="priority-pill ${r.prio}">${r.prio === 'haute' ? 'Priorité' : 'À explorer'}</span></div>
+        <div class="reco-line"><span class="reco-label constat">Constat</span><span class="reco-content">${r.constat}</span></div>
+        <div class="reco-line"><span class="reco-label pourquoi">Pourquoi</span><span class="reco-content">${r.pourquoi}</span></div>
+        <div class="reco-line"><span class="reco-label action">Action</span><span class="reco-content">${r.action}</span></div>
+      </div>`).join('')}`;
+
+  document.getElementById('rapport-handicap-section').innerHTML = realHandi.length>0 ? `
+    <div class="result-card"><h3>🤝 Tes besoins spécifiques</h3>
+    <p style="font-size:14px;margin-bottom:12px;">Ces points sont importants pour la suite de ton parcours.</p>
+    ${realHandi.map(h=>`<div class="reco-item"><span class="reco-icon">⚠️</span><div class="reco-text"><strong>${h}</strong>Parles-en avec ton établissement : des aménagements existent (tiers temps, matériel adapté, accompagnement). Pour le supérieur, chaque université et école a une mission handicap dédiée. Tu as des droits, utilise-les.</div></div>`).join('')}
+    </div>` : '';
+
+  // PISTES METIERS
+  const pistes = buildMetiers(d, riasec);
+  if(pistes.length > 0) {
+    document.getElementById('metiers-display').innerHTML = `
+      <div class="coherence-box">🧲 Ces pistes sont basées sur <strong>ce qui t'attire</strong> (tes intérêts, tes matières, tes activités), pas sur tes notes. Ce sont des directions à explorer, pas des obligations.</div>
+      ${pistes.map((p,i)=>`
+        <div class="metier-card">
+          <div class="metier-head">
+            <div class="metier-nom">${i+1}. ${p.m.n}</div>
+            <span class="match-pill">${p.isIdea ? '⭐ Ton idée !' : 'À explorer'}</span>
+          </div>
+          <div class="metier-row"><span class="metier-label">Pourquoi toi</span><span class="metier-content">${p.isIdea ? 'C\'est une idée que tu as toi-même mentionnée — et bonne nouvelle, elle colle à ton profil : ' : 'Ce métier correspond à ton profil : '}${p.reasons.join(', ')}.</span></div>
+          <div class="metier-row"><span class="metier-label">Formations</span><span class="metier-content"><span class="cert">${p.m.f}</span></span></div>
+          <div class="metier-row"><span class="metier-label">Bon à savoir</span><span class="metier-content">${p.m.v}</span></div>
+        </div>`).join('')}`;
+  } else {
+    document.getElementById('metiers-display').innerHTML = `<p style="font-size:14px;color:var(--text-muted);">Tes contraintes filtrent beaucoup de pistes de notre catalogue. C'est exactement le cas où un échange avec un(e) conseiller(ère) d'orientation apporte le plus : il ou elle explorera avec toi des pistes adaptées que ce test ne couvre pas.</p>`;
+  }
+
+  document.getElementById('voies-display').innerHTML = `
+    <div class="reco-item"><span class="reco-icon">🎓</span><div class="reco-text"><strong>Parcoursup</strong>La plateforme pour le supérieur. Les vœux se font de janvier à mars. Anticipe : explore les formations dès maintenant sur parcoursup.gouv.fr, lis les attendus de celles qui t'intéressent.</div></div>
+    <div class="reco-item"><span class="reco-icon">🧑‍💼</span><div class="reco-text"><strong>PsyEN & CIO — gratuit</strong>Les psychologues de l'Éducation nationale sont là pour t'aider, gratuitement. Demande un rendez-vous via ton établissement ou au CIO le plus proche. Viens avec ce rapport, c'est une super base de discussion.</div></div>
+    <div class="reco-item"><span class="reco-icon">🔍</span><div class="reco-text"><strong>Teste avant de choisir</strong>Mini-stages en lycée pro, journées d'immersion, stages d'observation, salons et journées portes ouvertes : rien ne remplace le terrain. Une journée dans un métier t'en apprend plus que 100 vidéos.</div></div>
+    <div class="reco-item"><span class="reco-icon">💼</span><div class="reco-text"><strong>L'alternance</strong>Étudier ET travailler en étant payé(e) (27% à 100% du SMIC). Du CAP au Bac+5, dans presque tous les domaines. Renseigne-toi sur alternance.gouv.fr et auprès des CFA de ta région.</div></div>
+    <div class="reco-item"><span class="reco-icon">🌐</span><div class="reco-text"><strong>Explore en ligne</strong>onisep.fr et avenirs.onisep.fr : fiches métiers, vidéos, quiz. Oriane.info en Île-de-France. Et les immersions vidéo de chaînes comme "Conditions de travail" ou les lives métiers.</div></div>
+    <div class="reco-item"><span class="reco-icon">🤝</span><div class="reco-text"><strong>Le service civique (dès 16 ans)</strong>6 à 12 mois de mission indemnisée (~620€/mois) dans la solidarité, le sport, la culture, l'environnement... Une super façon de gagner en expérience et en confiance si tu veux une pause utile avant de choisir.</div></div>`;
+
+  updateProgress('result');
+}
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.rtab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+tabId).classList.add('active');
+}
+function printReport() {
+  document.querySelectorAll('.rtab-content').forEach(t=>t.style.display='block');
+  window.print();
+  setTimeout(()=>{
+    document.querySelectorAll('.rtab-content').forEach(t=>t.style.display='');
+    document.getElementById('tab-synthese').classList.add('active');
+  },1000);
+}
+
+renderDots();
+updateProgress(0);
+</script>
+</body>
+</html>
